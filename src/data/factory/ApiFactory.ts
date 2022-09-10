@@ -1,9 +1,7 @@
-const { UserApi } = require('../api/UsersApi.json');
+import { UserApi } from "../api/UsersApi"
 
-class ApiFactory {
-    static getUsers() {
+export abstract class ApiFactory {
+    static user() {
         return new UserApi()
     }
 }
-
-module.exports.ApiFactory = ApiFactory

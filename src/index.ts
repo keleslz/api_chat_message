@@ -1,12 +1,15 @@
-const fs = require('fs');
+import { ApiFactory } from "./data/factory/ApiFactory";
 
-const app = require('express')();
+const express = require('express')
+var cors = require('cors')
+const app = express();
 const http = require('http').Server(app);
-
+app.use(cors())
 
 const io = require('socket.io')(http, {
   origin: "http://locahost:3000",
 });
+
 const port = process.env.API_PORT || 4000;
 
 app.get('/', (req: any, res: { send: (arg0: { code: number; }) => void; }) => {
@@ -15,36 +18,45 @@ app.get('/', (req: any, res: { send: (arg0: { code: number; }) => void; }) => {
   })
 });
 
-io.on('connection', (socket: { id: any; on: (arg0: string, arg1: { (data: any): void; (data: any): void; }) => void; }) => {
-  console.log(socket.id, 'socker');
 
-  socket.on('connect_entity', (data: any) => {
-    console.log(data, 'cm');
+app.get('/user/connecteds', (req: any, res: any) => {
+  const data = ApiFactory.user().getAll()
+  let users = Object.fromEntries(data ?? new Map())
+  const code = 201
+
+  res.status(code)
+
+  res.send({
+    code: code,
+    data: users
+  })
+});
+
+io.on('connection', (socket: { id: any; on: (arg0: string, arg1: { (data: any): void; (data: any): void; }) => void; }) => {
+
+  // console.log(apiFactory.Apifactory);
+  // console.log(socket.id, 'socker');
+
+  socket.on('connect_entity', (data: { id: string }) => {
+    ApiFactory.user().add(data.id)
     io.emit('connect_entity', data);
   });
 
 
   socket.on('chat_message', (data: any) => {
-    console.log(data, 'cm');
     io.emit('chat_message', data);
   });
 
   socket.on('chat_writing', (data: any) => {
-    console.log(data, 'cw');
     io.emit('chat_writing', data);
   });
 });
 
 io.on('disconnect', (socket: { id: any; on: (arg0: string, arg1: { (data: any): void; (data: any): void; }) => void; }) => {
-  console.log(socket.id, 'deconnected');
 
-  socket.on('chat_message', (data: any) => {
-    io.emit('chat_message', data);
-  });
-
-  socket.on('chat_writing', (data: any) => {
-    console.log(data);
-    io.emit('chat_writing', data);
+  socket.on('diconnect_entity', (data: { id: string }) => {
+    ApiFactory.user().remove(data.id)
+    io.emit('disconnect_entity', data);
   });
 });
 
