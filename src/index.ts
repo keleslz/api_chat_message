@@ -1,4 +1,7 @@
+import { config } from "dotenv";
 import { ApiFactory } from "./data/factory/ApiFactory";
+
+config().parsed
 
 const express = require('express')
 var cors = require('cors')
@@ -7,7 +10,7 @@ const http = require('http').Server(app);
 app.use(cors())
 
 const io = require('socket.io')(http, {
-  origin: "http://locahost:3000",
+  origin: process.env.DOMAIN_CLIENT_API,
 });
 
 const port = process.env.API_PORT || 4000;
